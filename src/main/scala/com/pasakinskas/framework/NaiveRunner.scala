@@ -13,7 +13,9 @@ class NaiveRunner[K, V, R](
     val shuffled = shuffleEntries(mapped)
 
     val reduced = shuffled.map(one => mapReduce.reducer(one))
-    reduced.foreach(println)
+    reduced
+      .filter(_.nonEmpty)
+      .foreach(println)
   }
 
   private def mapEntries(): Seq[KeyValue[K, V]] = {

@@ -5,7 +5,7 @@ trait MapReduce[K, V, R] {
 
   def mappers(): Map[String, Mapper[K, V]]
 
-  def reducer(input: KeyValue[K, Seq[V]]): KeyValue[K, R]
+  def reducer(input: KeyValue[K, Seq[V]]): Option[R]
 }
 
 trait Mapper[K, V] {

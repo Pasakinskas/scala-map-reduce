@@ -9,23 +9,22 @@ class LithuanianClicks extends MapReduce[String, Databag, Seq[Map[String, String
   def mappers(): Map[String, Mapper[String, Databag]] = {
     Map(
       "data/clicks" -> new ClicksMapper(),
-      "data/users" -> new UsersMapper()
+      "data/users" -> new UsersMapper(),
     )
   }
 
-  override def reducer(input: KeyValue[String, Seq[Databag]]): KeyValue[String, Seq[Map[String, String]]] = {
-    val one = input.value
-      .find(entry => entry.fields.getOrElse("table", "") == "users")
-      .getOrElse(Databag(mutable.Map[String, String]().empty))
+  override def reducer(input: KeyValue[String, Seq[Databag]]): Option[Seq[Map[String, String]]] = {
+    val user = input.value.find(_.fields.getOrElse("table", "") == "users")
+    val userFields = user.map(_.fields).getOrElse(Map.empty)
 
-    val values = input.value
-      .filter(_.fields("table") == "clicks")
+    val entries = input.value
       .map(_.fields)
-      .map(_.addAll(one.fields))
+      .filter(_.getOrElse("table", "") == "clicks")
+      .map(_.addAll(userFields))
       .filter(_.contains("country"))
       .map(_.toMap)
 
-    KeyValue(one.fields.getOrElse("id", ""), values)
+    if (entries.nonEmpty) Some(entries) else None
   }
 }
 
@@ -50,9 +49,8 @@ class ClicksMapper extends Mapper[String, Databag] {
       .map(row => {
         val userId = row("user_id")
         val fields = mutable.Map[String, String]()
-
-        fields.addAll(row)
-        fields.addOne("table" -> "clicks")
+          .addAll(row)
+          .addOne("table" -> "clicks")
 
         KeyValue(userId, Databag(fields))
       })

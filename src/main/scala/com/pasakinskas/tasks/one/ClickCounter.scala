@@ -2,7 +2,7 @@ package com.pasakinskas.tasks.one
 
 import com.pasakinskas.framework.{KeyValue, MapReduce, Mapper}
 
-class ClickCounter extends MapReduce[String, Click, Int] {
+class ClickCounter extends MapReduce[String, Click, (String, Int)] {
 
   def mappers(): Map[String, Mapper[String, Click]] = {
     Map(
@@ -10,8 +10,8 @@ class ClickCounter extends MapReduce[String, Click, Int] {
     )
   }
 
-  override def reducer(input: KeyValue[String, Seq[Click]]): KeyValue[String, Int] = {
-    KeyValue(input.key, input.value.size)
+  override def reducer(input: KeyValue[String, Seq[Click]]): Option[(String, Int)] = {
+    Some((input.key, input.value.size))
   }
 }
 
