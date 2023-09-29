@@ -6,7 +6,7 @@ import scala.io.Source
 import scala.jdk.CollectionConverters.IteratorHasAsScala
 
 
-object FileReader {
+class FileReader {
 
   // investigate using an future/observable here later
   def getEntries(path: String): Seq[Seq[Map[String, String]]] = {

@@ -1,23 +1,24 @@
 package com.pasakinskas
 
-import com.pasakinskas.framework.KeyValue
-import com.pasakinskas.tasks.ClickCounter
+import com.pasakinskas.framework.NaiveRunner
+import com.pasakinskas.tasks.one.ClickCounter
+import com.pasakinskas.tasks.two.LithuanianClicks
 
 object Main {
 
   def main(args: Array[String]): Unit = {
-    val counter = new ClickCounter
+    taskTwo()
+  }
 
-    val mapped = for {
-      line <- FileReader.getEntries("data/clicks")
-      row <- line
-    } yield counter.mapper(row)
+  def taskTwo(): Unit = {
+    val fileReader = new FileReader
+    val naiveRunner = new NaiveRunner(new LithuanianClicks, fileReader)
+    naiveRunner.run()
+  }
 
-    val shuffled = mapped.groupBy(_.key).map({
-      case (key, grouped) => KeyValue(key, grouped.map(_.value))
-    })
-
-    val reduced = shuffled.map(counter.reducer)
-    reduced.foreach(println)
+  def taskOne(): Unit = {
+    val fileReader = new FileReader
+    val naiveRunner = new NaiveRunner(new ClickCounter, fileReader)
+    naiveRunner.run()
   }
 }
