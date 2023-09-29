@@ -8,14 +8,14 @@ class NaiveRunner[K, V, R](
   fileReader: FileReader,
 ) {
 
-  def run(): Unit = {
+  def run(): Seq[R] = {
     val mapped = mapEntries()
     val shuffled = shuffleEntries(mapped)
 
-    val reduced = shuffled.map(one => mapReduce.reducer(one))
-    reduced
+    shuffled
+      .map(one => mapReduce.reducer(one))
       .filter(_.nonEmpty)
-      .foreach(println)
+      .map(_.get)
   }
 
   private def mapEntries(): Seq[KeyValue[K, V]] = {

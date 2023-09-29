@@ -13,12 +13,14 @@ object Main {
   def taskTwo(): Unit = {
     val fileReader = new FileReader
     val naiveRunner = new NaiveRunner(new LithuanianClicks, fileReader)
-    naiveRunner.run()
+
+    naiveRunner.run().foreach(println)
   }
 
   def taskOne(): Unit = {
     val fileReader = new FileReader
     val naiveRunner = new NaiveRunner(new ClickCounter, fileReader)
-    naiveRunner.run()
+
+    naiveRunner.run().foreach(println)
   }
 }
