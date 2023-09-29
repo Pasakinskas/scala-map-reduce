@@ -10,7 +10,7 @@ trait MapReduce[K, V, R] {
 
 trait Mapper[K, V] {
 
-  def apply(input: Seq[Map[String, String]]): Seq[KeyValue[K, V]]
+  def apply(input: Map[String, String]): Option[KeyValue[K, V]]
 }
 
 case class KeyValue[K, V](key: K, value: V)

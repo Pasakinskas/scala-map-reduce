@@ -16,14 +16,13 @@ class ClickCounter extends MapReduce[String, Click, (String, Int)] {
 }
 
 class ClicksMapper extends Mapper[String, Click] {
-  override def apply(input: Seq[Map[String, String]]): Seq[KeyValue[String, Click]] = {
-    input.map(row => {
-      val date = row("date")
-      val userId = row("user_id")
-      val location = row("click_target")
 
-      KeyValue(date, Click(date, userId, location))
-    })
+  override def apply(input: Map[String, String]): Option[KeyValue[String, Click]] = {
+    val date = input("date")
+    val userId = input("user_id")
+    val location = input("click_target")
+
+    Some(KeyValue(date, Click(date, userId, location)))
   }
 }
 

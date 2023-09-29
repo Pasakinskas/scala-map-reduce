@@ -7,7 +7,7 @@ import com.pasakinskas.tasks.two.LithuanianClicks
 object Main {
 
   def main(args: Array[String]): Unit = {
-    taskTwo()
+    taskOne()
   }
 
   def taskTwo(): Unit = {

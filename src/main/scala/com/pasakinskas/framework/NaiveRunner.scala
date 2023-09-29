@@ -22,10 +22,10 @@ class NaiveRunner[K, V, R](
     val pairs = for {
       (location, mapper) <- mapReduce.mappers()
       row <- fileReader.getEntries(location)
-      result <- mapper(row)
-    } yield result
+      line <- row
+    } yield mapper(line)
 
-    pairs.toSeq
+    pairs.filter(_.nonEmpty).map(_.get).toSeq
   }
 
   private def shuffleEntries(pairs: Iterable[KeyValue[K, V]]): Seq[KeyValue[K, Seq[V]]] = {

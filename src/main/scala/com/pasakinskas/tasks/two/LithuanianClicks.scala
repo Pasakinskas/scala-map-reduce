@@ -29,31 +29,28 @@ class LithuanianClicks extends MapReduce[String, Databag, Seq[Map[String, String
 }
 
 class UsersMapper extends Mapper[String, Databag] {
-  override def apply(input: Seq[Map[String, String]]): Seq[KeyValue[String, Databag]] = {
-    input
-      .filter(row => row("country") == "LT")
-      .map(row => {
-        val userId = row("id")
-        val fields = mutable.Map[String, String]()
+  override def apply(input: Map[String, String]): Option[KeyValue[String, Databag]] = {
+    if (input.getOrElse("country", "") != "LT") {
+      None
+    } else {
+      val userId = input("id")
+      val fields = mutable.Map[String, String]()
 
-        fields.addAll(row)
-        fields.addOne("table" -> "users")
+      fields.addAll(input)
+      fields.addOne("table" -> "users")
 
-        KeyValue(userId, Databag(fields))
-      })
+      Some(KeyValue(userId, Databag(fields)))
+    }
   }
 }
 class ClicksMapper extends Mapper[String, Databag] {
-  override def apply(input: Seq[Map[String, String]]): Seq[KeyValue[String, Databag]] = {
-    input
-      .map(row => {
-        val userId = row("user_id")
-        val fields = mutable.Map[String, String]()
-          .addAll(row)
+  override def apply(input: Map[String, String]): Option[KeyValue[String, Databag]] = {
+    val userId = input("user_id")
+    val fields = mutable.Map[String, String]()
+          .addAll(input)
           .addOne("table" -> "clicks")
 
-        KeyValue(userId, Databag(fields))
-      })
+    Some(KeyValue(userId, Databag(fields)))
   }
 }
 
