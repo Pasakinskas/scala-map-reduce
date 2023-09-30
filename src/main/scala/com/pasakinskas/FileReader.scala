@@ -4,11 +4,11 @@ import java.io.File
 import java.nio.file.{FileSystems, Files, Path}
 import scala.io.Source
 import scala.jdk.CollectionConverters.IteratorHasAsScala
+import scala.util.Using
 
 
 class FileReader {
 
-  // investigate using an future/observable here later
   def getEntries(path: String): Seq[Seq[Map[String, String]]] = {
     for {
       file <- getFiles(path).map(_.toFile)
@@ -21,12 +21,11 @@ class FileReader {
     Files.list(location).iterator().asScala.toSeq
   }
 
-  // source is not closed
   private def getFileLines(file: File): Seq[String] = {
-    Source.fromFile(file).getLines().toSeq
+    Using(Source.fromFile(file)) { _.getLines().toList }
+      .getOrElse(throw new RuntimeException())
   }
 
-  // for comprehension
   private def linesToEntries(rawLines: Seq[String]): Seq[Map[String, String]] = {
     val headers = rawLines.head.split(",")
     val values = rawLines.drop(1)

@@ -2,6 +2,7 @@ package com.pasakinskas.framework
 
 import com.pasakinskas.FileReader
 
+
 // reduced should return a map
 class NaiveRunner[K, V, R](
   mapReduce: MapReduce[K, V, R],
@@ -19,7 +20,7 @@ class NaiveRunner[K, V, R](
   }
 
   private def mapEntries(): Seq[KeyValue[K, V]] = {
-    val pairs = for {
+    val pairs = for { // Seq[Option[Keyvalue]]
       (location, mapper) <- mapReduce.mappers()
       row <- fileReader.getEntries(location)
       line <- row
