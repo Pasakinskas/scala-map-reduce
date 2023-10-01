@@ -14,7 +14,7 @@ class TaskRunner[K, V, R](
       parallelShuffled <- Task.parSequence(shuffled.map(Task(_)))
       reduced = parallelShuffled.flatMap(mapReduce.reducer)
       strings = reduced.map(mapReduce.outputFormat)
-      _ = fileReaderWriter.writeToFile(strings, mapReduce.output)
+      () = fileReaderWriter.writeToFile(strings, mapReduce.output)
     } yield reduced
   }
 
