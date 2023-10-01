@@ -1,8 +1,8 @@
 package com.pasakinskas
 
+import com.pasakinskas.examples.one.ClickCounter
 import com.pasakinskas.framework.{NaiveRunner, TaskRunner}
-import com.pasakinskas.tasks.one.ClickCounter
-import com.pasakinskas.tasks.two.LithuanianClicks
+import com.pasakinskas.examples.two.UsersClicksDataJoin
 import monix.execution.Scheduler
 
 import java.util.concurrent.Executors
@@ -20,7 +20,7 @@ object Main {
 
   def taskTwo(): Unit = {
     val fileReader = new FileReader
-    val naiveRunner = new NaiveRunner(new LithuanianClicks, fileReader)
+    val naiveRunner = new NaiveRunner(new UsersClicksDataJoin, fileReader)
 
     naiveRunner.run().foreach(println)
   }

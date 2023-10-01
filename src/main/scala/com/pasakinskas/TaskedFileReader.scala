@@ -13,17 +13,25 @@ class TaskedFileReader(lineLimit: Int) {
     for {
       file <- getFiles(path)
       groupOfLines <- getFileLines(file)
-      chunkedTask = groupOfLines.map(line => linesToEntries(line))
-    } yield chunkedTask
+    } yield groupOfLines
   }
 
   private def getFiles(path: String): Seq[File] = {
     val location = FileSystems.getDefault.getPath(s"./src/main/resources/${path}")
-    Files.list(location).iterator().asScala.toSeq.map(_.toFile)
+    Files.list(location).iterator().asScala
+      .filter(_.toString.endsWith(".csv"))
+      .map(_.toFile)
+      .toSeq
   }
 
-  private def getFileLines(file: File): Iterator[Task[Seq[String]]]  = {
-    Source.fromFile(file).getLines().grouped(lineLimit).map(group => Task(group))
+  private def getFileLines(file: File): Iterator[Task[Seq[LineEntry]]]  = {
+    val lines = Source.fromFile(file).getLines()
+    val headers = lines.next()
+    lines
+      .filter(_.nonEmpty)
+      .map(line => lineToEntry(headers, line))
+      .grouped(lineLimit)
+      .map(group => Task(group.toList))
   }
 
 //  private def getFileLines(file: File): Seq[Task[Seq[String]]] = {
@@ -34,19 +42,17 @@ class TaskedFileReader(lineLimit: Int) {
 //    }.getOrElse(throw new RuntimeException()).toSeq
 //  }
 
-  private def linesToEntries(rawLines: Seq[String]): Seq[LineEntry] = {
-    val headers = rawLines.head.split(",")
-    val lineValues = rawLines.drop(1)
+  private def lineToEntry(headers: String, row: String): LineEntry = {
+    val headerValues = headers.split(",")
+    val rowValues = row.split(",")
 
-    lineValues.map(line => {
-      val values = line.split(",").zipWithIndex.map(splitLine => {
-        val (value, index) = splitLine
-        headers(index) -> value
-      }).toMap
+    val valuesByHeader = rowValues.zipWithIndex.map(rowValue => {
+      val (value, index) = rowValue
+      headerValues(index) -> value
+    }).toMap
 
-      LineEntry(values)
-      })
-    }
+    LineEntry(valuesByHeader)
+  }
 }
 
 case class LineEntry(values: Map[String, String])

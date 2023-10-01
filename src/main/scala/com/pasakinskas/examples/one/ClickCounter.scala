@@ -1,4 +1,4 @@
-package com.pasakinskas.tasks.one
+package com.pasakinskas.examples.one
 
 import com.pasakinskas.framework.{KeyValue, MapReduce, Mapper}
 

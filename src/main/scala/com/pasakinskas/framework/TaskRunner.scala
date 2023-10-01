@@ -3,7 +3,6 @@ package com.pasakinskas.framework
 import com.pasakinskas.{LineEntry, TaskedFileReader}
 import monix.eval.Task
 
-
 class TaskRunner[K, V, R](
   mapReduce: MapReduce[K, V, R],
   taskedFileReader: TaskedFileReader,
@@ -11,26 +10,26 @@ class TaskRunner[K, V, R](
 
   def run(): Task[Seq[R]] = {
     for {
-      mapResults <- Task.parSequence(getTasksToMap())
+      mapResults <- Task.parSequence(tasksToMap())
       shuffled = shuffleEntries(mapResults.flatten)
       reduced = shuffled.flatMap(mapReduce.reducer)
     } yield reduced
   }
 
-  private def getTasksToMap() = {
+  private def tasksToMap(): Iterable[Task[Seq[KeyValue[K, V]]]] = {
     for {
-      (one, two) <- mapReduce.mappers()
-      rows = taskedFileReader.getEntries(one)
-      task <- rows
-      mapResult = mapChunk(task, two)
+      (location, mapper) <- mapReduce.mappers()
+      tasksWithRows = taskedFileReader.getEntries(location)
+      task <- tasksWithRows
+      mapResult = mapChunk(task, mapper)
     } yield mapResult
   }
 
-  private def mapChunk(chunk: Task[Seq[LineEntry]], mapper: Mapper[K, V]): Task[Seq[KeyValue[K, V]]] = {
+  private def mapChunk(task: Task[Seq[LineEntry]], mapper: Mapper[K, V]): Task[Seq[KeyValue[K, V]]] = {
     for {
-      one <- chunk
-      result = one.map(one => mapper.apply(one.values))
-    } yield  result.flatten
+      chunk <- task
+      result = chunk.flatMap(line => mapper.apply(line.values))
+    } yield  result
   }
 
   private def shuffleEntries(pairs: Iterable[KeyValue[K, V]]): Seq[KeyValue[K, Seq[V]]] = {

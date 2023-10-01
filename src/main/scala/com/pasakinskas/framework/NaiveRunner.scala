@@ -20,7 +20,7 @@ class NaiveRunner[K, V, R](
   }
 
   private def mapEntries(): Seq[KeyValue[K, V]] = {
-    val pairs = for { // Seq[Option[Keyvalue]]
+    val pairs = for {
       (location, mapper) <- mapReduce.mappers()
       row <- fileReader.getEntries(location)
       line <- row

@@ -1,10 +1,10 @@
-package com.pasakinskas.tasks.two
+package com.pasakinskas.examples.two
 
 import com.pasakinskas.framework.{KeyValue, MapReduce, Mapper}
 
 import scala.collection.mutable
 
-class LithuanianClicks extends MapReduce[String, Databag, Seq[Map[String, String]]] {
+class UsersClicksDataJoin extends MapReduce[String, Databag, Seq[Map[String, String]]] {
 
   def mappers(): Map[String, Mapper[String, Databag]] = {
     Map(
