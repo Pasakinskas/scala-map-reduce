@@ -1,5 +1,6 @@
 package com.pasakinskas
 
+import com.pasakinskas.TaskedFileReader._
 import monix.eval.Task
 
 import java.io.File
@@ -10,16 +11,14 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
 class TaskedFileReader(lineLimit: Int) {
 
   def getEntries(path: String): Seq[Task[Seq[LineEntry]]] = {
-    for {
-      file <- getFiles(path)
-      groupOfLines <- getFileLines(file)
-    } yield groupOfLines
+    getFiles(path).map(file => Task(getFileLines(file)))
+    getFiles(path).flatMap(getFileLines)
   }
 
   private def getFiles(path: String): Seq[File] = {
-    val location = FileSystems.getDefault.getPath(s"./src/main/resources/${path}")
+    val location = FileSystems.getDefault.getPath(s"${DEFAULT_PATH}${path}")
     Files.list(location).iterator().asScala
-      .filter(_.toString.endsWith(".csv"))
+      .filter(_.toString.endsWith(CSV_FILE_EXTENSION))
       .map(_.toFile)
       .toSeq
   }
@@ -34,17 +33,9 @@ class TaskedFileReader(lineLimit: Int) {
       .map(group => Task(group.toList))
   }
 
-//  private def getFileLines(file: File): Seq[Task[Seq[String]]] = {
-//    Using(Source.fromFile(file)) { source =>
-//      source.getLines().grouped(lineLimit).map(group => {
-//        Task(group.toList)
-//      })
-//    }.getOrElse(throw new RuntimeException()).toSeq
-//  }
-
   private def lineToEntry(headers: String, row: String): LineEntry = {
-    val headerValues = headers.split(",")
-    val rowValues = row.split(",")
+    val headerValues = headers.split(VALUE_SEPARATOR)
+    val rowValues = row.split(VALUE_SEPARATOR)
 
     val valuesByHeader = rowValues.zipWithIndex.map(rowValue => {
       val (value, index) = rowValue
@@ -53,6 +44,12 @@ class TaskedFileReader(lineLimit: Int) {
 
     LineEntry(valuesByHeader)
   }
+}
+
+object TaskedFileReader {
+  final val DEFAULT_PATH = "./src/main/resources/"
+  final val VALUE_SEPARATOR = ","
+  final val CSV_FILE_EXTENSION = "csv"
 }
 
 case class LineEntry(values: Map[String, String])

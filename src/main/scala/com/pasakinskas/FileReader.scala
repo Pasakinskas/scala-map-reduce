@@ -18,12 +18,12 @@ class FileReader {
 
   private def getFiles(path: String): Seq[Path] = {
     val location = FileSystems.getDefault.getPath(s"./src/main/resources/${path}")
-    Files.list(location).iterator().asScala.toSeq
+    Files.list(location).iterator().asScala.filter(_.toString.endsWith(".csv")).toSeq
   }
 
   private def getFileLines(file: File): Seq[String] = {
     Using(Source.fromFile(file)) { _.getLines().toList }
-      .getOrElse(throw new RuntimeException())
+      .getOrElse(throw new RuntimeException("could not read line files"))
   }
 
   private def linesToEntries(rawLines: Seq[String]): Seq[Map[String, String]] = {

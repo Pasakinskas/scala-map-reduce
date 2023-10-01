@@ -15,7 +15,8 @@ object Main {
     lazy val executorService = scala.concurrent.ExecutionContext.fromExecutor(Executors.newFixedThreadPool(numberOfThreads));
     implicit val scheduler: Scheduler = Scheduler(executorService)
 
-    taskOneAsync()
+   taskOneAsync()
+//    taskOne()
   }
 
   def taskTwo(): Unit = {
@@ -29,15 +30,20 @@ object Main {
     val fileReader = new FileReader
     val naiveRunner = new NaiveRunner(new ClickCounter, fileReader)
 
+    val t0 = System.currentTimeMillis()
     naiveRunner.run().foreach(println)
+    val t1 = System.currentTimeMillis()
+    println("Elapsed time: " + (t1 - t0) + "ms")
   }
 
   def taskOneAsync()(implicit sc: Scheduler): Unit = {
     val taskedFileReader = new TaskedFileReader(10000)
     val taskRunner = new TaskRunner(new ClickCounter, taskedFileReader)
 
-    taskRunner.run().runToFuture.foreach(one => {
-      one.foreach(println)
+    val t0 = System.currentTimeMillis()
+    taskRunner.run().runToFuture.andThen(_ => {
+      val t1 = System.currentTimeMillis()
+      println("Elapsed time: " + (t1 - t0) + "ms")
     })
   }
 }
