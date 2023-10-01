@@ -6,6 +6,12 @@ trait MapReduce[K, V, R] {
   def mappers(): Map[String, Mapper[K, V]]
 
   def reducer(input: KeyValue[K, Seq[V]]): Option[R]
+
+  def output: String
+
+  def outputFormat(reduceResult: R): String = {
+    reduceResult.toString
+  }
 }
 
 trait Mapper[K, V] {

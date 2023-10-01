@@ -4,21 +4,24 @@ import monix.eval.Task
 
 class TaskRunner[K, V, R](
   mapReduce: MapReduce[K, V, R],
-  taskedFileReader: FileReader,
+  fileReaderWriter: FileReaderWriter,
 ) {
 
   def run(): Task[Seq[R]] = {
     for {
       mapResults <- Task.parSequence(tasksToMap())
       shuffled = shuffleEntries(mapResults.flatten)
-      reduced = shuffled.flatMap(mapReduce.reducer)
+      parallelShuffled <- Task.parSequence(shuffled.map(Task(_)))
+      reduced = parallelShuffled.flatMap(mapReduce.reducer)
+      strings = reduced.map(mapReduce.outputFormat)
+      _ = fileReaderWriter.writeToFile(strings, mapReduce.output)
     } yield reduced
   }
 
   private def tasksToMap(): Iterable[Task[Seq[KeyValue[K, V]]]] = {
     for {
       (location, mapper) <- mapReduce.mappers()
-      tasksWithRows = taskedFileReader.getEntries(location)
+      tasksWithRows = fileReaderWriter.getEntries(location)
       task <- tasksWithRows
       mapResult = mapChunk(task, mapper)
     } yield mapResult

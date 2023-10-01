@@ -13,6 +13,8 @@ class ClickCounter extends MapReduce[String, Click, (String, Int)] {
   override def reducer(input: KeyValue[String, Seq[Click]]): Option[(String, Int)] = {
     Some((input.key, input.value.size))
   }
+
+  override def output: String = "data/clicks-per-day.csv"
 }
 
 class ClicksMapper extends Mapper[String, Click] {

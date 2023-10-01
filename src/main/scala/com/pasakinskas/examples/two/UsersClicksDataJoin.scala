@@ -2,9 +2,7 @@ package com.pasakinskas.examples.two
 
 import com.pasakinskas.framework.{KeyValue, MapReduce, Mapper}
 
-import scala.collection.mutable
-
-class UsersClicksDataJoin extends MapReduce[String, Databag, Seq[Map[String, String]]] {
+class UsersClicksDataJoin extends MapReduce[String, Databag, FilteredClicksPerUser] {
 
   def mappers(): Map[String, Mapper[String, Databag]] = {
     Map(
@@ -13,45 +11,31 @@ class UsersClicksDataJoin extends MapReduce[String, Databag, Seq[Map[String, Str
     )
   }
 
-  override def reducer(input: KeyValue[String, Seq[Databag]]): Option[Seq[Map[String, String]]] = {
+  override def reducer(input: KeyValue[String, Seq[Databag]]): Option[FilteredClicksPerUser] = {
     val user = input.value.find(_.fields.getOrElse("table", "") == "users")
     val userFields = user.map(_.fields).getOrElse(Map.empty)
 
-    val entries = input.value
+    val joined = input.value
       .map(_.fields)
       .filter(_.getOrElse("table", "") == "clicks")
-      .map(_.addAll(userFields))
+      .map(kv => kv ++ userFields)
       .filter(_.contains("country"))
-      .map(_.toMap)
 
-    if (entries.nonEmpty) Some(entries) else None
+    if (joined.nonEmpty) Some(FilteredClicksPerUser(joined)) else None
   }
+
+  override def outputFormat(joinResult: FilteredClicksPerUser): String = {
+    val formattedRows = for {
+      row <- joinResult.rows
+      pair = row.map(kv => s"${kv._1}:${kv._2}").mkString(",")
+    } yield pair
+
+    formattedRows.mkString("\n")
+  }
+
+  override def output: String = "data/filtered-clicks.csv"
 }
 
-class UsersMapper extends Mapper[String, Databag] {
-  override def apply(input: Map[String, String]): Option[KeyValue[String, Databag]] = {
-    if (input.getOrElse("country", "") != "LT") {
-      None
-    } else {
-      val userId = input("id")
-      val fields = mutable.Map[String, String]()
+case class FilteredClicksPerUser(rows: Seq[Map[String, String]])
 
-      fields.addAll(input)
-      fields.addOne("table" -> "users")
-
-      Some(KeyValue(userId, Databag(fields)))
-    }
-  }
-}
-class ClicksMapper extends Mapper[String, Databag] {
-  override def apply(input: Map[String, String]): Option[KeyValue[String, Databag]] = {
-    val userId = input("user_id")
-    val fields = mutable.Map[String, String]()
-          .addAll(input)
-          .addOne("table" -> "clicks")
-
-    Some(KeyValue(userId, Databag(fields)))
-  }
-}
-
-case class Databag(fields: mutable.Map[String, String])
+case class Databag(fields: Map[String, String])
