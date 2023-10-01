@@ -1,11 +1,10 @@
 package com.pasakinskas.framework
 
-import com.pasakinskas.{LineEntry, TaskedFileReader}
 import monix.eval.Task
 
 class TaskRunner[K, V, R](
   mapReduce: MapReduce[K, V, R],
-  taskedFileReader: TaskedFileReader,
+  taskedFileReader: FileReader,
 ) {
 
   def run(): Task[Seq[R]] = {
