@@ -16,7 +16,7 @@ object Main {
     implicit val scheduler: Scheduler = Scheduler(executorService)
 
    taskOneAsync()
-//    taskOne()
+    //taskOne()
   }
 
   def taskTwo(): Unit = {
@@ -27,8 +27,7 @@ object Main {
   }
 
   def taskOne(): Unit = {
-    val fileReader = new FileReader
-    val naiveRunner = new NaiveRunner(new ClickCounter, fileReader)
+    val naiveRunner = new NaiveRunner(new ClickCounter,  new FileReader)
 
     val t0 = System.currentTimeMillis()
     naiveRunner.run().foreach(println)
@@ -37,11 +36,11 @@ object Main {
   }
 
   def taskOneAsync()(implicit sc: Scheduler): Unit = {
-    val taskedFileReader = new TaskedFileReader(10000)
-    val taskRunner = new TaskRunner(new ClickCounter, taskedFileReader)
+    val taskRunner = new TaskRunner(new ClickCounter, new TaskedFileReader(40000))
 
     val t0 = System.currentTimeMillis()
-    taskRunner.run().runToFuture.andThen(_ => {
+    taskRunner.run().runToFuture.andThen(a => {
+      a.get.foreach(println)
       val t1 = System.currentTimeMillis()
       println("Elapsed time: " + (t1 - t0) + "ms")
     })

@@ -11,7 +11,6 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
 class TaskedFileReader(lineLimit: Int) {
 
   def getEntries(path: String): Seq[Task[Seq[LineEntry]]] = {
-    getFiles(path).map(file => Task(getFileLines(file)))
     getFiles(path).flatMap(getFileLines)
   }
 
