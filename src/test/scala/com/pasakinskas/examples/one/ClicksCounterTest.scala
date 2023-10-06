@@ -6,7 +6,7 @@ import org.specs2.specification.Scope
 
 class ClicksCounterTest extends Specification {
 
-  "ClicksMapper" should {
+  "ClicksMapper.apply" should {
     "maps input to KeyValue" in new Context {
       val date = "2023-01-01"
       val userId = "1"
@@ -18,8 +18,19 @@ class ClicksCounterTest extends Specification {
       mapResult must beSome(keyValue)
     }
   }
+
+  "ClicksCounter.reducer" should {
+    "sum the number of clicks per day" in new Context {
+      val date = "2023-01-01"
+      val groupedClicks = Seq(Click(date, "1", "ad"), Click(date, "2", "profile"))
+      val input = KeyValue(date, groupedClicks)
+
+        counter.reducer(input) must beSome (date, groupedClicks.size)
+    }
+  }
 }
 
 class Context extends Scope {
-  val mapper = new ClicksMapper()
+  val counter = new ClickCounter
+  val mapper = new ClicksMapper
 }

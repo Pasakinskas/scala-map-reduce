@@ -1,6 +1,6 @@
 package com.pasakinskas.framework
 
-import com.pasakinskas.framework.FileReader._
+import com.pasakinskas.framework.FileReaderWriter._
 import monix.eval.Task
 
 import java.io.{File, PrintWriter}
@@ -8,7 +8,7 @@ import java.nio.file.{FileSystems, Files}
 import scala.io.Source
 import scala.jdk.CollectionConverters.IteratorHasAsScala
 
-class FileReaderWriter(lineLimit: Int) {
+class FileReaderWriter(lineLimit: Int = 10000) {
 
   def getEntries(path: String): Seq[Task[Seq[LineEntry]]] = {
     for {
@@ -58,7 +58,7 @@ class FileReaderWriter(lineLimit: Int) {
   }
 }
 
-object FileReader {
+object FileReaderWriter {
   final val DEFAULT_PATH = "./src/main/resources/"
   final val VALUE_SEPARATOR = ","
   final val CSV_FILE_EXTENSION = "csv"

@@ -7,14 +7,20 @@ class TaskRunner[K, V, R](
   fileReaderWriter: FileReaderWriter,
 ) {
 
+  def outputResult(): Task[Unit] = {
+    for {
+      result <- run()
+      strings = result.map(mapReduce.outputFormat)
+      () = fileReaderWriter.writeToFile(strings, mapReduce.output)
+    } yield ()
+  }
+
   def run(): Task[Seq[R]] = {
     for {
       mapResults <- Task.parSequence(tasksToMap())
       shuffled = shuffleEntries(mapResults.flatten)
       parallelShuffled <- Task.parSequence(shuffled.map(Task(_)))
       reduced = parallelShuffled.flatMap(mapReduce.reducer)
-      strings = reduced.map(mapReduce.outputFormat)
-      () = fileReaderWriter.writeToFile(strings, mapReduce.output)
     } yield reduced
   }
 

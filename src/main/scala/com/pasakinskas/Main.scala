@@ -14,18 +14,21 @@ object Main {
     val executorService = scala.concurrent.ExecutionContext.fromExecutor(Executors.newFixedThreadPool(size))
     implicit val scheduler: Scheduler = Scheduler(executorService)
 
-    task()
+    taskOne()
+    taskTwo()
   }
 
-  def task()(implicit sc: Scheduler): Unit = {
-    val lineLimit = 10000
-    val fileReader = new FileReaderWriter(lineLimit)
+  def taskOne()(implicit sc: Scheduler): Unit = {
+    val fileReader = new FileReaderWriter()
     val taskRunner = new TaskRunner(new UsersClicksDataJoin, fileReader)
 
-    val t0 = System.currentTimeMillis()
-    taskRunner.run().runToFuture.andThen(_ => {
-      val t1 = System.currentTimeMillis()
-      println("Elapsed time: " + (t1 - t0) + "ms")
-    })
+    taskRunner.outputResult().runToFuture
+  }
+
+  def taskTwo()(implicit sc: Scheduler): Unit = {
+    val fileReader = new FileReaderWriter()
+    val taskRunner = new TaskRunner(new ClickCounter, fileReader)
+
+    taskRunner.outputResult().runToFuture
   }
 }
